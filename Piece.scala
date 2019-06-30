@@ -1,6 +1,7 @@
 import scala.collection.immutable._
 import scala.math.{abs, max, min}
 import scala.concurrent.duration._
+import util.control.Breaks._
 
 object MainClass {
 
@@ -85,6 +86,13 @@ object MainClass {
       var newGrid = grid ++ piece
       grid = newGrid
       true
+    }
+  }
+
+  def removePiece(piece: pieceType) = {
+    if (!touchBottom && piece.subsetOf(grid)) {
+      var newGrid = grid.diff(piece)
+      grid = newGrid
     }
   }
 
@@ -205,31 +213,43 @@ object MainClass {
       gameOver = !setInGrid(currentPiece)
 
       printGrid()
+      input = scala.io.StdIn.readLine("Input: ")
 
-      val deadline = 40.seconds.fromNow
-
-      while(touchBottom == false) {
-        input = scala.io.StdIn.readLine("Input: ")
+      while(!touchBottom) {
+        val deadline = 3.seconds.fromNow
         var newPiece = currentPiece
+        breakable {
+          if(!deadline.hasTimeLeft()) {
+            newPiece = fall(currentPiece)
+            removePiece(currentPiece)
+            setInGrid(newPiece)
+            currentPiece = newPiece
+            input = scala.io.StdIn.readLine("Input: ")
+            break()
+          }
 
-        if(input == "A" || input == "a") {
-         newPiece = translate(currentPiece, List(-1,0))
-        }
-        else if(input == "S" || input == "s") {
-         newPiece = translate(currentPiece, List(1, 0))
-        }
-        else if(input == "R" || input == "r") {
-         newPiece = rotateAntiClock(currentPiece)
-        }
-        else if(input == "T" || input == "t") {
-          newPiece = rotateClock(currentPiece)
-        }
-        else if(!deadline.hasTimeLeft()) {
-          newPiece = fall(currentPiece)
-        }
+          if(input == "A" || input == "a") {
+            newPiece = translate(currentPiece, List(-1,0))
+          }
+          else if(input == "S" || input == "s") {
+            newPiece = translate(currentPiece, List(1, 0))
+          }
+          else if(input == "R" || input == "r") {
+            newPiece = rotateAntiClock(currentPiece)
+          }
+          else if(input == "T" || input == "t") {
+            newPiece = rotateClock(currentPiece)
+          }
+          else if (!deadline.hasTimeLeft()) {
+            newPiece = fall(currentPiece)
+          }
 
-        setInGrid(newPiece)
-        currentPiece = newPiece
+          removePiece(currentPiece)
+          setInGrid(newPiece)
+          currentPiece = newPiece
+          printGrid()
+          input = scala.io.StdIn.readLine("Input: ")
+        }
       }
 
       score += getPoints()
