@@ -14,4 +14,12 @@ jobs:
       with:
         java-version: 1.8
     - name: Run tests
-      run: sbt test
+      run: sbt Main
+      
+ name: Issue assigner
+  uses: estrada9166/issue-assigner@v1
+  with:
+    # The GITHUB_TOKEN secret
+    GITHUB_TOKEN: # optional
+    # Create comments with the commit information
+    WITH_COMMENTS: # optional, default is true
